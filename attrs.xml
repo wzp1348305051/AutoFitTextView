@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="AutoFitTextView">
+        <attr name="maxLines" format="float"/>
+        <attr name="maxLength" format="float"/>
+    </declare-styleable>
+</resources>
