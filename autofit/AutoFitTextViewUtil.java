@@ -16,14 +16,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class AutoFitTextViewUtil {
     private static final String mMaxString = "酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷酷";
-    private static final Map<String, Integer> mFitSizeMap = new ConcurrentHashMap<>();
+    private static final Map<String, Float> mFitSizeMap = new ConcurrentHashMap<>();
 
     private AutoFitTextViewUtil() {
         throw new UnsupportedOperationException("Cannot init");
     }
 
-    public static int getFitSize(TextPaint textPaint, DisplayMetrics displayMetrics, int
-            maxWidth, int maxLengthOneLine) {
+    public static float getFitSize(TextPaint textPaint, DisplayMetrics displayMetrics, int
+            maxWidth, int maxLengthOneLine, float forecastSize) {
         String key = String.valueOf(maxWidth) + String.valueOf(maxLengthOneLine);
         if (mFitSizeMap.containsKey(key)) {
             return mFitSizeMap.get(key);
@@ -45,22 +45,25 @@ public class AutoFitTextViewUtil {
             }
         }
 
-        int lastTextSize = 18;// 初始默认字体大小
+        if (forecastSize <= 0) {
+            forecastSize = 14f;
+        }
+        float lastTextSize = forecastSize;// 初始默认字体大小
         paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, lastTextSize,
                 displayMetrics));
         float lastMeasureWidth = paint.measureText(text);
 
         if (lastMeasureWidth < maxWidth) {
             while (lastMeasureWidth < maxWidth) {
-                lastTextSize++;
+                lastTextSize = lastTextSize + 0.5f;
                 paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
                         lastTextSize, displayMetrics));
                 lastMeasureWidth = paint.measureText(text);
             }
-            lastTextSize--;
+            lastTextSize = lastTextSize - 0.5f;
         } else {
             while (lastMeasureWidth >= maxWidth) {
-                lastTextSize--;
+                lastTextSize = lastTextSize - 0.5f;
                 paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
                         lastTextSize, displayMetrics));
                 lastMeasureWidth = paint.measureText(text);

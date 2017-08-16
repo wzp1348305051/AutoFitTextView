@@ -3,5 +3,8 @@
     <declare-styleable name="AutoFitTextView">
         <attr name="maxLines" format="float"/>
         <attr name="maxLength" format="float"/>
+        <attr name="maxSize" format="float"/>
+        <attr name="minSize" format="float"/>
+        <attr name="forecastSize" format="float"/>
     </declare-styleable>
 </resources>
