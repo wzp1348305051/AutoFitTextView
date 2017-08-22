@@ -5,7 +5,6 @@ import android.content.res.TypedArray;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
-import android.view.ViewTreeObserver;
 
 import com.yitlib.common.R;
 
@@ -42,40 +41,30 @@ public class AutoFitTextView extends AppCompatTextView {
         mMinSize = typedArray.getFloat(R.styleable.AutoFitTextView_minSize, -1);
         mForecastSize = typedArray.getFloat(R.styleable.AutoFitTextView_forecastSize, -1);
         typedArray.recycle();
-
-        addResizeTextSizeListener();
     }
 
     /**
      * 根据最大显示字符个数调整字体大小
      */
-    private void addResizeTextSizeListener() {
-        if (mMaxLength <= 0 || mMaxSize < mMinSize) {
-            return;
-        }
-        getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override
-            public boolean onPreDraw() {
-                if (!mHasResize) {
-                    mHasResize = true;
-                    int contentWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-                    if (contentWidth > 0) {
-                        int maxLengthOneLine = (int) Math.ceil(mMaxLength / mMaxLines);
-                        float fitSize = AutoFitTextViewUtil.getFitSize(getPaint(), getResources()
-                                .getDisplayMetrics(), contentWidth, maxLengthOneLine,
-                                mForecastSize);
-                        if (mMaxSize != -1 && fitSize > mMaxSize) {
-                            fitSize = mMaxSize;
-                        } else if (mMinSize != -1 && fitSize < mMinSize) {
-                            fitSize = mMinSize;
-                        }
-                        setTextSize(fitSize);
-                        return false;
-                    }
+    @Override
+    public boolean onPreDraw() {
+        if (mMaxLength > 0 && mMaxSize >= mMinSize && !mHasResize) {
+            mHasResize = true;
+            int contentWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+            if (contentWidth > 0) {
+                int maxLengthOneLine = (int) Math.ceil(mMaxLength / mMaxLines);
+                float fitSize = AutoFitTextViewUtil.getFitSize(getPaint(), getResources()
+                        .getDisplayMetrics(), contentWidth, maxLengthOneLine, mForecastSize);
+                if (mMaxSize != -1 && fitSize > mMaxSize) {
+                    fitSize = mMaxSize;
+                } else if (mMinSize != -1 && fitSize < mMinSize) {
+                    fitSize = mMinSize;
                 }
-                return true;
+                setTextSize(fitSize);
+                return false;
             }
-        });
+        }
+        return super.onPreDraw();
     }
 
 }
