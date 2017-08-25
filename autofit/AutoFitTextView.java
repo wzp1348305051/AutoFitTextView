@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
+import android.view.ViewTreeObserver.OnPreDrawListener;
 
 import com.yitlib.common.R;
 
@@ -21,7 +22,6 @@ public class AutoFitTextView extends AppCompatTextView {
     private float mMaxSize;
     private float mMinSize;
     private float mForecastSize;// 预测字体大小，加快调整速度
-    private boolean mHasResize;
 
     public AutoFitTextView(Context context) {
         this(context, null);
@@ -41,30 +41,40 @@ public class AutoFitTextView extends AppCompatTextView {
         mMinSize = typedArray.getFloat(R.styleable.AutoFitTextView_minSize, -1);
         mForecastSize = typedArray.getFloat(R.styleable.AutoFitTextView_forecastSize, -1);
         typedArray.recycle();
+
+        addResizeTextSizeListener();
     }
 
     /**
      * 根据最大显示字符个数调整字体大小
      */
-    @Override
-    public boolean onPreDraw() {
-        if (mMaxLength > 0 && mMaxSize >= mMinSize && !mHasResize) {
-            mHasResize = true;
-            int contentWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-            if (contentWidth > 0) {
-                int maxLengthOneLine = (int) Math.ceil(mMaxLength / mMaxLines);
-                float fitSize = AutoFitTextViewUtil.getFitSize(getPaint(), getResources()
-                        .getDisplayMetrics(), contentWidth, maxLengthOneLine, mForecastSize);
-                if (mMaxSize != -1 && fitSize > mMaxSize) {
-                    fitSize = mMaxSize;
-                } else if (mMinSize != -1 && fitSize < mMinSize) {
-                    fitSize = mMinSize;
-                }
-                setTextSize(fitSize);
-                return false;
-            }
+    private void addResizeTextSizeListener() {
+        if (mMaxLength <= 0 || mMaxSize < mMinSize) {
+            return;
         }
-        return super.onPreDraw();
+        getViewTreeObserver().addOnPreDrawListener(new OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                int contentWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+                if (contentWidth > 0) {
+                    int maxLengthOneLine = (int) Math.ceil(mMaxLength / mMaxLines);
+                    float fitSize = AutoFitTextViewUtil.getFitSize(getPaint(), getResources()
+                            .getDisplayMetrics(), contentWidth, maxLengthOneLine, mForecastSize);
+                    if (mMaxSize != -1 && fitSize > mMaxSize) {
+                        fitSize = mMaxSize;
+                    } else if (mMinSize != -1 && fitSize < mMinSize) {
+                        fitSize = mMinSize;
+                    }
+                    if (getTextSize() != fitSize) {
+                        setTextSize(fitSize);
+                        getViewTreeObserver().removeOnPreDrawListener(this);
+                        return false;
+                    }
+                }
+                getViewTreeObserver().removeOnPreDrawListener(this);
+                return true;
+            }
+        });
     }
 
 }
